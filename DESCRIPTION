@@ -1,0 +1,9 @@
+Package: fplR
+Type: Package
+Title: Functions To Process Fantasy Premiership Data
+Version: 0.1
+Date: 2016-08-13
+Authors@R: person("Harvey", "Lieberman", email = "harvey.lieberman@gmail.com", role = c("aut", "cre"))
+Description: Functions To Process Fantasy Premiership Data
+License: GPL-3
+LazyData: TRUE
