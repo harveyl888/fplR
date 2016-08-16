@@ -33,4 +33,14 @@ getEntry <- function(entry = NULL) {
   return(data)
 }
 
-
+#'getTeam
+#'
+#'Get team data
+#'
+#'@import jsonlite
+getTeam <- function(entry = NULL, wk = 1) {
+  if (is.null(entry)) return()
+  url <- paste0('https://fantasy.premierleague.com/drf/entry/', entry, '/event/', wk, '/picks')
+  data <- jsonlite::fromJSON(url)
+  return(data)
+}
