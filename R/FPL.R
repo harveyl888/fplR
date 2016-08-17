@@ -1,6 +1,9 @@
-#'getFPLData
+#' Get team, player and game data
 #'
-#'Get team, player and game data
+#' Retrieve fantasy football data from fantasy.premierleague.com site.
+#'
+#' @return a list containing phases, elements, game-settings, total-players, teams,
+#' element_types and events
 #'
 #' @import jsonlite
 getFPLData <- function() {
@@ -9,9 +12,12 @@ getFPLData <- function() {
   return(data)
 }
 
-#'getLeagueTable
+#' Get a league table
 #'
-#'Get a league table
+#' Retrieve a fantasy football league table for a specific week
+#'
+#' @param leagueID Numeric league identifier
+#' @param wk Week number
 #'
 #' @import jsonlite
 getLeagueTable <- function(leagueID = NULL, wk = 1) {
@@ -21,9 +27,11 @@ getLeagueTable <- function(leagueID = NULL, wk = 1) {
   return(data)
 }
 
-#'getEntry
+#' Get an entry info
 #'
-#'Get an entry info
+#' Return entry details and historical league information
+#'
+#' @param entry Numeric entry identifier
 #'
 #' @import jsonlite
 getEntry <- function(entry = NULL) {
@@ -33,9 +41,12 @@ getEntry <- function(entry = NULL) {
   return(data)
 }
 
-#'getTeam
+#' Get team data
 #'
-#'Get team data
+#' Return team information from a specific week.
+#'
+#' @param entry Numeric entry identifier
+#' @param wk Week number
 #'
 #'@import jsonlite
 getTeam <- function(entry = NULL, wk = 1) {
