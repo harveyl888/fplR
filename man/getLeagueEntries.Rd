@@ -4,14 +4,14 @@
 \alias{getLeagueEntries}
 \title{Get all entries for a particular league}
 \usage{
-getLeagueEntries(leagueID, wk = 1, fplData = NULL)
+getLeagueEntries(leagueID, wk = 1, fpl = NULL)
 }
 \arguments{
 \item{leagueID}{Numeric league identifier}
 
 \item{wk}{Week number}
 
-\item{fplData}{Output from getFPLData}
+\item{fpl}{Output from getFPLData}
 }
 \description{
 Return a list of dataframes each containing an entry
