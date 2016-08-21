@@ -140,6 +140,22 @@ getTeam <- function(entry = NULL, wk = 1) {
   return(data)
 }
 
+
+#' Get event details and points
+#'
+#' Return point details of all players from a particular week
+#'
+#' @param wk Week number
+#'
+#' @import jsonlite
+#' @export
+getEvent <- function(wk = 1) {
+  url <- paste0('https://fantasy.premierleague.com/drf/event/', wk, '/live')
+  data <- jsonlite::fromJSON(url)
+  return(data)
+}
+
+
 # df <- team$picks
 # df <- df %>%
 #   left_join(fpl$elements %>%
