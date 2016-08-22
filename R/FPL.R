@@ -94,7 +94,7 @@ getLeagueEntries <- function(leagueID, wk = 1, fpl = NULL) {
 #'
 #' @import dplyr
 #' @export
-playerCount <- function(l.teams, fpl) {
+playerCount <- function(l.teams, fpl = NULL) {
   if (is.null(fpl)) fpl <- getFPLData()
   df.players <- as.data.frame(table(sort(unlist(lapply(l.teams, function(x) x$element)))), stringsAsFactors = FALSE)
   names(df.players) <- c('element', 'count')
@@ -155,6 +155,35 @@ getEvent <- function(wk = 1) {
   return(data)
 }
 
+
+#' Player Point data frame
+#'
+#' Return a data frame of players and points up to a maximum week
+#'
+#' @param fpl Output from getFPLData
+#' @param maxWeek maximum week number to run (current week if set to NULL)
+#'
+#' @import dplyr
+#' @export
+pointsFrame <- function(fpl = NULL, maxWeek = NULL) {
+  if (is.null(fpl)) fpl <- getFPLData()
+  currentWeek <- which(fpl$events$is_current)
+  if (is.null(maxWeek)) maxWeek <- currentWeek
+  if (maxWeek > currentWeek) maxWeek <- currentWeek
+  l.data <- list()
+  for (i in 1:maxWeek) {
+    allData <- getEvent(i)
+    l.data[[i]] <- allData$elements
+    Sys.sleep(0.1)
+  }
+  l.points <- lapply(l.data, function(x) data.frame(id = names(x), p = sapply(x, function(y) y$stats$total_points), stringsAsFactors = FALSE))
+  df <- Reduce(function(...) merge(..., by='id', all=T), l.points)
+  df$id  <- as.integer(df$id)
+  df <- df %>% left_join(fpl$elements %>% select(id, first_name, second_name), by = 'id') %>% arrange(id)
+  df <- df[, c(1, ncol(df)-1, ncol(df), 2:(ncol(df)-2))]
+  colnames(df)[4:ncol(df)] <- paste0('week ', seq(maxWeek))
+  return(df)
+}
 
 # df <- team$picks
 # df <- df %>%
