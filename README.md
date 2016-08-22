@@ -15,4 +15,4 @@ This repository contains a simple series of functions to aid in scraping data fr
     ```r
     playerCount(l.teams, fpl) %>% filter(count == 0 & element_type == 'MID') %>% arrange(-total_points)
     ```
-*  `pointsFrame(fpl, maxWeek)` Return a data frame containing id, first name, second name points scored for all weeks up to maxWeek.  If maxWeek is NULL then the current game week is assumed.
+*  `pointsFrame(fpl, maxWeek)` Return a data frame containing id, first name, second name points scored for all weeks up to `maxWeek`.  `fpl` is the output returned by `getFPLData()`.  If `maxWeek` is NULL then the current game week is assumed.
