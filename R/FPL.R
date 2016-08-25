@@ -98,7 +98,7 @@ playerCount <- function(l.teams, fpl = NULL) {
   if (is.null(fpl)) fpl <- getFPLData()
   df.players <- as.data.frame(table(sort(unlist(lapply(l.teams, function(x) x$element)))), stringsAsFactors = FALSE)
   names(df.players) <- c('element', 'count')
-  df.players$element <- as.numeric(df.pickedPlayers$element)
+  df.players$element <- as.numeric(df.players$element)
   df.players <- rbind(df.players, data.frame(element = which(!fpl$elements$id %in% df.players$element), count = 0))
   df.players <- df.players %>% left_join(fpl$elements %>% select(id, first_name, second_name, element_type, team, now_cost, total_points), c('element' = 'id')) %>%
     mutate(team = .teamID(fpl, team)) %>%
