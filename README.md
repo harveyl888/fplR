@@ -8,7 +8,7 @@ This repository contains a simple series of functions to aid in scraping data fr
 *  `getEntry(entry)` Return entry details and historical information.
 *  `getEvent(week)` Return data relating to a specific week.  Output is a list with two elements (fixtures and elements).
 *  `getTeam(entry, wk)` Get team data (week specified).
-*  `getLeagueTable(leagueID, wk)` Return a league table for a classic league (week specified).
+*  `getLeagueTable(leagueID, wk)` Return a league table for a classic league (week specified).  If week is `NULL` then return the most current table.
 *  `getLeagueEntries(leagueID, wk, fpl)` Return the teams in a league table for a classic league (week specified).  `fpl` is the output returned by `getFPLData()`.
 *  `playerCount(l.teams, fpl)` Return a data frame containing all players and their frequency in a particular league.  `fpl` is the output returned by `getFPLData()`.  `l.teams` is the list of teams returned by `getLeagueEntries(leagueID, wk, fpl)`.  The resulting data frame can be effectively sliced and diced using `dplyr`, for example the following code returns all unselected midfielders ordered by total points:
 
