@@ -7,4 +7,7 @@ Authors@R: person("Harvey", "Lieberman", email = "harvey.lieberman@gmail.com", r
 Description: Functions To Process Fantasy Premiership Data
 License: GPL-3
 LazyData: TRUE
+Imports:
+    dplyr,
+    jsonlite
 RoxygenNote: 5.0.0

@@ -9,7 +9,7 @@
 #' @export
 getFPLData <- function() {
   url <- 'https://fantasy.premierleague.com/drf/bootstrap-static'
-  data <- jsonlite::fromJSON(url)
+  data <- fromJSON(url)
   return(data)
 }
 
@@ -29,7 +29,7 @@ getLeagueTable <- function(leagueID = NULL, wk = NULL) {
   } else {
     url <- paste0('https://fantasy.premierleague.com/drf/leagues-classic-standings/', leagueID, '?phase=', wk)
   }
-  data <- jsonlite::fromJSON(url)
+  data <- fromJSON(url)
   return(data)
 }
 
@@ -124,7 +124,7 @@ playerCount <- function(l.teams, fpl = NULL) {
 getEntry <- function(entry = NULL) {
   if (is.null(entry)) return()
   url <- paste0('https://fantasy.premierleague.com/drf/entry/', entry)
-  data <- jsonlite::fromJSON(url)
+  data <- fromJSON(url)
   return(data)
 }
 
@@ -140,7 +140,7 @@ getEntry <- function(entry = NULL) {
 getTeam <- function(entry = NULL, wk = 1) {
   if (is.null(entry)) return()
   url <- paste0('https://fantasy.premierleague.com/drf/entry/', entry, '/event/', wk, '/picks')
-  data <- jsonlite::fromJSON(url)
+  data <- fromJSON(url)
   return(data)
 }
 
@@ -155,7 +155,7 @@ getTeam <- function(entry = NULL, wk = 1) {
 #' @export
 getEvent <- function(wk = 1) {
   url <- paste0('https://fantasy.premierleague.com/drf/event/', wk, '/live')
-  data <- jsonlite::fromJSON(url)
+  data <- fromJSON(url)
   return(data)
 }
 
