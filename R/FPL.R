@@ -25,7 +25,7 @@ getFPLData <- function() {
 getLeagueTable <- function(leagueID = NULL, wk = NULL) {
   if (is.null(leagueID)) return()
   if (is.null(wk)) {
-    url <- 'https://fantasy.premierleague.com/drf/leagues-classic-standings/388914?phase=1&le-page=1&ls-page=1'
+    url <- paste0('https://fantasy.premierleague.com/drf/leagues-classic-standings/', leagueID, '?phase=1&le-page=1&ls-page=1')
   } else {
     url <- paste0('https://fantasy.premierleague.com/drf/leagues-classic-standings/', leagueID, '?phase=', wk)
   }
