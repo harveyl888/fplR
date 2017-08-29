@@ -15,19 +15,19 @@ getFPLData <- function() {
 
 #' Get a league table
 #'
-#' Retrieve a fantasy football league table for a specific week
+#' Retrieve a fantasy football league table for a specific phase
 #'
 #' @param leagueID Numeric league identifier
-#' @param wk Week number.  If \code{NULL} then return the current league table
+#' @param phase Phase number.  If \code{NULL} then return the current league table
 #'
 #' @import jsonlite
 #' @export
-getLeagueTable <- function(leagueID = NULL, wk = NULL) {
+getLeagueTable <- function(leagueID = NULL, phase = NULL) {
   if (is.null(leagueID)) return()
-  if (is.null(wk)) {
-    url <- paste0('https://fantasy.premierleague.com/drf/leagues-classic-standings/', leagueID, '?phase=1&le-page=1&ls-page=1')
+  if (is.null(phase)) {
+    url <- paste0('https://fantasy.premierleague.com/drf/leagues-classic-standings/', leagueID)
   } else {
-    url <- paste0('https://fantasy.premierleague.com/drf/leagues-classic-standings/', leagueID, '?phase=', wk)
+    url <- paste0('https://fantasy.premierleague.com/drf/leagues-classic-standings/', leagueID, '?phase=', phase)
   }
   data <- fromJSON(url)
   return(data)
