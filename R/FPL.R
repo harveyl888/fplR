@@ -71,7 +71,7 @@ getLeagueTable <- function(leagueID = NULL, phase = NULL) {
 #' @export
 getLeagueEntries <- function(leagueID, wk = 1, fpl = NULL) {
   if (is.null(fpl)) fpl <- getFPLData()
-  leagueTableData <- getLeagueTable(leagueID, wk)
+  leagueTableData <- getLeagueTable(leagueID, NULL)
   df.leagueTable <- leagueTableData$standings$results
   entries <- df.leagueTable$entry
   l.team <- list()
