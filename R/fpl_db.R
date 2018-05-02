@@ -58,11 +58,15 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
   ## grab data
   fpl <- getFPLData()
 
+  ## get range of weeks for all data
   if (all) {
     fpl <- getFPLData()
     currentWeek <- which(fpl$events$is_current)
     weeks <- seq(currentWeek)
   }
+
+  out.stats <- FALSE
+  out.league <- FALSE
 
   if (stats == TRUE) {
     if (progressbar) pb <- txtProgressBar(0, length(weeks), style = 3)
@@ -112,7 +116,7 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
     df.league_week <- bind_rows(l.league_week)
 
     ## write league data to database
-    out.stats <- dbWriteTable(db, 'league_weeks', df.league_week, row.names = FALSE, overwrite = TRUE)
+    out.league <- dbWriteTable(db, 'league_weeks', df.league_week, row.names = FALSE, overwrite = TRUE)
   }
-
+  return(list(out.stats, out.league))
 }
