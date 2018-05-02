@@ -87,7 +87,12 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
     df.stats <- bind_rows(l.stats)
 
     ## write stats to database
-    out.stats <- dbWriteTable(db, 'stats', df.stats, row.names = FALSE, overwrite = TRUE)
+    if (all) {
+      out.stats <- dbWriteTable(db, 'stats', df.stats, row.names = FALSE, overwrite = TRUE)
+    } else {
+      dummy <- dbExecute(db, paste0('DELETE FROM stats WHERE week IN (', paste0(weeks, collapse = ','), ')'))
+      out.stats <- dbWriteTable(db, 'stats', df.stats, row.names = FALSE, append = TRUE)
+    }
   }
 
   if (league == TRUE) {
@@ -115,8 +120,13 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
     if (progressbar) close(pb)
     df.league_week <- bind_rows(l.league_week)
 
-    ## write league data to database
-    out.league <- dbWriteTable(db, 'league_weeks', df.league_week, row.names = FALSE, overwrite = TRUE)
+    ## write league to database
+    if (all) {
+      out.league <- dbWriteTable(db, 'league_weeks', df.league_week, row.names = FALSE, overwrite = TRUE)
+    } else {
+      dummy <- dbExecute(db, paste0('DELETE FROM league_weeks WHERE week IN (', paste0(weeks, collapse = ','), ')'))
+      out.league <- dbWriteTable(db, 'league_weeks', df.league_week, row.names = FALSE, append = TRUE)
+    }
   }
   return(list(out.stats, out.league))
 }
