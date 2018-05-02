@@ -55,9 +55,6 @@ initialize_database <- function(db, leagueID=NULL) {
 add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=c(), all=FALSE, progressbar=FALSE) {
   if (is.null(leagueID)) stop('No leagueID specified')
 
-  ## grab data
-  fpl <- getFPLData()
-
   ## get range of weeks for all data
   if (all) {
     fpl <- getFPLData()
