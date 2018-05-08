@@ -37,6 +37,11 @@ initialize_database <- function(db, leagueID=NULL) {
   return(list(out.league, out.teams, out.players))
 }
 
+## if null return 0 otherwise return value
+.nullCheck <- function(x) {
+  ifelse(is.null(x), 0, x)
+}
+
 #' Add selected data to a MySql database
 #'
 #' Retrieve fantasy football data from fantasy.premierleague.com site and
@@ -64,6 +69,7 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
 
   out.stats <- FALSE
   out.league <- FALSE
+  out.entry <- FALSE
 
   if (stats == TRUE) {
     if (progressbar) pb <- txtProgressBar(0, length(weeks), style = 3)
@@ -107,25 +113,45 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
       l.singleWeek <- lapply(league_entries, function(t) {
         Sys.sleep(0.2)  ## wait a little
         teamData <- getTeam(entry = t, wk = week)
-        teamData$picks %>%
+        df.teamData <- teamData$picks %>%
           mutate(entry = t) %>%
           mutate(week = week) %>%
           select(entry, week, everything())
+        df.entryHistory <- data.frame(
+          entry = t,
+          week = week,
+          num_transfers = .nullCheck(teamData$entry_history$event_transfers),
+          cost_transfers = .nullCheck(teamData$entry_history$event_transfers_cost),
+          point = .nullCheck(teamData$entry_history$points),
+          total_points = .nullCheck(teamData$entry_history$total_points),
+          points_on_bench = .nullCheck(teamData$entry_history$points_on_bench),
+          team_value = .nullCheck(teamData$entry_history$value),
+          chip = teamData$active_chip,
+          stringsAsFactors = FALSE
+        )
+        list(team = df.teamData, entry = df.entryHistory)
       })
-      bind_rows(l.singleWeek)
+      list(
+        team = bind_rows(lapply(l.singleWeek, function(x) {x$team})),
+        entry = bind_rows(lapply(l.singleWeek, function(x) {x$entry}))
+      )
     })
     if (progressbar) close(pb)
-    df.league_week <- bind_rows(l.league_week)
+    df.league_week <- bind_rows(lapply(l.league_week, function(x) {x$team}))
+    df.entry_week <- bind_rows(lapply(l.league_week, function(x) {x$entry}))
 
     ## write league to database
     if (all) {
       out.league <- dbWriteTable(db, 'league_weeks', df.league_week, row.names = FALSE, overwrite = TRUE)
+      out.entry <- dbWriteTable(db, 'entry_weeks', df.entry_week, row.names = FALSE, overwrite = TRUE)
     } else {
       dummy <- dbExecute(db, paste0('DELETE FROM league_weeks WHERE week IN (', paste0(weeks, collapse = ','), ')'))
       out.league <- dbWriteTable(db, 'league_weeks', df.league_week, row.names = FALSE, append = TRUE)
+      dummy <- dbExecute(db, paste0('DELETE FROM entry_weeks WHERE week IN (', paste0(weeks, collapse = ','), ')'))
+      out.entry <- dbWriteTable(db, 'entry_weeks', df.entry_week, row.names = FALSE, append = TRUE)
     }
   }
-  return(list(out.stats, out.league))
+  return(list(out.stats, out.league, out.entry))
 }
 
 #' Read data back from a MySQL database
@@ -140,8 +166,14 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
 read_database <- function(db) {
   df.league <- dbReadTable(db, 'league')
   df.league_weeks <- dbReadTable(db, 'league_weeks')
+  df.entry_weeks <- dbReadTable(db, 'entry_weeks')
   df.players <- dbReadTable(db, 'players')
   df.stats <- dbReadTable(db, 'stats')
   df.teams <- dbReadTable(db, 'teams')
-  return(list(league = df.league, league_weeks = df.league_weeks, players = df.players, stats = df.stats, teams = df.teams))
+  return(list(league = df.league,
+              league_weeks = df.league_weeks,
+              entry_weeks = df.entry_weeks,
+              players = df.players,
+              stats = df.stats,
+              teams = df.teams))
 }
