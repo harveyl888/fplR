@@ -116,6 +116,8 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
         df.teamData <- teamData$picks %>%
           mutate(entry = t) %>%
           mutate(week = week) %>%
+          mutate(is_captain = as.numeric(is_captain)) %>%
+          mutate(is_vice_captain = as.numeric(is_vice_captain)) %>%
           select(entry, week, everything())
         df.entryHistory <- data.frame(
           entry = t,
