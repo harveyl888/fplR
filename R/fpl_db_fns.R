@@ -103,3 +103,77 @@ fpl_league <- function(l, max_week = 0, out_type = 'total') {
   df[ order(-df[, ncol(df)]), ]
 }
 
+
+#' Return a list of teams
+#'
+#' Return a list of team IDs from a list of manager names, team names or simply the IDs
+#'     themselves.
+#'
+#' @param l List of obtained from read_database
+#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return List of team IDs
+.teamIDs <- function(l, ids = c()) {
+  if (length(ids) == 0) return(l$league$entry)
+  out.entries <- c(match(ids, l$league$entry),
+                   match(ids, l$league$entry_name),
+                   match(ids, l$league$player_name))
+  out.entries <- sort(unique(out.entries[!is.na(out.entries)]))
+  return(l$league$entry[out.entries])
+}
+
+
+#' Was the best captain selected?
+#'
+#' Retrieve a table indicating points differential between the captain chosen and the
+#'     best choice
+#'
+#' @param l List of obtained from read_database
+#' @param weeks Vector of weeks.  If empty then include all weeks
+#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return dataframe containing table
+#'
+#' @import dplyr
+#' @import tidyr
+#' @export
+captainChoice <- function(l, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
+  entries <- .teamIDs(l, managers)
+  df_chosen <- l$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    group_by(entry, week) %>%
+    slice(1:11) %>%
+    filter(multiplier > 1) %>%
+    left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    mutate(score_capt = total_points * multiplier)
+
+  df_best <- l$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    group_by(entry, week) %>%
+    left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    mutate(score_best = total_points * max(multiplier)) %>%
+    top_n(n = 1, wt = score_best) %>%
+    slice(1)
+
+  df_out <- df_chosen %>%
+    select(entry, week, score_capt) %>%
+    right_join(df_best %>% select(entry, week, score_best), by = c('entry', 'week')) %>%
+    mutate(score_capt = ifelse(is.na(score_capt), 0, score_capt)) %>%
+    mutate(score_delta = score_best - score_capt) %>%
+    left_join(l[['league']], by = c('entry')) %>%
+    ungroup() %>%
+    select(player_name, entry_name, week, score_capt, score_best, score_delta)
+
+  df_spread <- df_out %>%
+    select(entry_name, week, score_delta) %>%
+    spread(week, score_delta) %>%
+    mutate(total = rowSums(.[-1])) %>%
+    arrange(desc(total), entry_name)
+
+  return(list(complete = df_out, summary = df_spread))
+}
