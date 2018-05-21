@@ -1,11 +1,18 @@
-.week_score <- function(d, inc_transfers, entry_row) {
+.week_score <- function(d, inc_transfers, entry_use) {
+
+  entry_row <- entry_use %>%
+    filter(use_entry == d[1, ]$entry & use_week == d[1, ]$week) %>%
+    slice(1)
+
   if (entry_row$chip == '3xc') {  ## account for triple captain
     d[d$multiplier == 2, ]$multiplier <- 3
   }
   if (!entry_row$chip == 'bboost') {  ## account for bench boost
     d <- d[1:11, ]
   }
-  sum(d$total_points * d$multiplier)
+  score <- sum(d$total_points * d$multiplier)
+  if (inc_transfers == TRUE) score <- score - entry_row$cost_transfers
+  return (score)
 }
 
 
@@ -30,7 +37,7 @@ fpl_league_weekly <- function(l, weeks = c()) {
     filter(week %in% weeks) %>%
     left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
     group_by(entry, week) %>%
-    do(points = .week_score(., inc_transfers = FALSE, entry_row = entry_use %>% filter(entry == use_entry & week == use_week))) %>%
+    do(points = .week_score(., inc_transfers = FALSE, entry_use = entry_use)) %>%
     mutate(points = unlist(points)) %>%
     left_join(l[['league']], by = c('entry')) %>%
     unite(team, player_name, entry_name) %>%
