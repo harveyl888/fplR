@@ -177,3 +177,39 @@ captainChoice <- function(l, weeks = c(), managers = c()) {
 
   return(list(complete = df_out, summary = df_spread))
 }
+
+
+#' Return the formation played
+#'
+#' Return the formation played in given game weeks
+#'
+#' @param l List of obtained from read_database
+#' @param weeks Vector of weeks.  If empty then include all weeks
+#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return dataframe containing table
+#'
+#' @import dplyr
+#' @import tidyr
+#' @export
+playedFormation <- function(l, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
+  entries <- .teamIDs(l, managers)
+
+  df_formation <- l$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    select(entry, week, element, position) %>%
+    group_by(entry, week) %>%
+    slice(1:11) %>%
+    left_join(l[['players']] %>% select(id, element_type), by = c('element' = 'id')) %>%
+    summarise(n_def = sum(element_type == 2), n_mid = sum(element_type == 3), n_fwd = sum(element_type == 4)) %>%
+    mutate(formation = paste(n_def, n_mid, n_fwd, sep = '-')) %>%
+    select(entry, week, formation) %>%
+    ungroup() %>%
+    spread(week, formation) %>%
+    left_join(l[['league']] %>% select(entry, entry_name), by = 'entry') %>%
+    select(-entry) %>%
+    select(entry_name, everything())
+}
