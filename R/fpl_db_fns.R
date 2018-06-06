@@ -213,3 +213,53 @@ playedFormation <- function(l, weeks = c(), managers = c()) {
     select(-entry) %>%
     select(entry_name, everything())
 }
+
+
+#' Return the best formation
+#'
+#' Return the formation leading to the best score in given game weeks
+#'
+#' @param l List of obtained from read_database
+#' @param weeks Vector of weeks.  If empty then include all weeks
+#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return dataframe containing table
+#'
+#' @import dplyr
+#' @import tidyr
+#' @export
+bestFormation <- function(l, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
+  entries <- .teamIDs(l, managers)
+
+  df_formation <- l$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    select(entry, week, element, position) %>%
+    group_by(entry, week) %>%
+    left_join(l[['players']] %>% select(id, element_type), by = c('element' = 'id')) %>%
+    filter(element_type != 1) %>%
+    left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    arrange(week, entry, element_type, desc(total_points)) %>%
+    summarise('3-4-3' = sum(total_points[1:3], total_points[6:9], total_points[11:13]),
+              '3-5-2' = sum(total_points[1:3], total_points[6:10], total_points[11:12]),
+              '4-3-3' = sum(total_points[1:4], total_points[6:8], total_points[11:13]),
+              '4-4-2' = sum(total_points[1:4], total_points[6:9], total_points[11:12]),
+              '4-5-1' = sum(total_points[1:4], total_points[6:10], total_points[11:11]),
+              '5-2-3' = sum(total_points[1:5], total_points[6:7], total_points[11:13]),
+              '5-3-2' = sum(total_points[1:5], total_points[6:8], total_points[11:12]),
+              '5-4-1' = sum(total_points[1:5], total_points[6:9], total_points[11:11])) %>%
+    ungroup()
+
+  df_formation$max_score <- apply(df_formation[, -c(1:2)], 1, function(x) which(x == max(x)))
+  df_formation$max_id <- apply(df_formation, 1, function(x) paste0(names(x['max_score'][[1]]), collapse = '; '))
+  df_formation <- df_formation %>%
+    select(entry, week, max_id) %>%
+    spread(week, max_id) %>%
+    left_join(l[['league']] %>% select(entry, entry_name), by = 'entry') %>%
+    select(-entry) %>%
+    select(entry_name, everything())
+  df_formation
+
+}
