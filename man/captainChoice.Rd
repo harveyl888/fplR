@@ -4,10 +4,10 @@
 \alias{captainChoice}
 \title{Was the best captain selected?}
 \usage{
-captainChoice(l, weeks = c(), managers = c())
+captainChoice(f, weeks = c(), managers = c())
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{weeks}{Vector of weeks.  If empty then include all weeks}
 

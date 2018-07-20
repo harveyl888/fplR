@@ -4,10 +4,10 @@
 \alias{fpl_league}
 \title{Get league table}
 \usage{
-fpl_league(l, max_week = 0, out_type = "total")
+fpl_league(f, max_week = 0, out_type = "total")
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{max_week}{Maximum week.  Defaults to maximum in database}
 

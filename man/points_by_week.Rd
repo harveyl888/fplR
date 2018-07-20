@@ -4,10 +4,10 @@
 \alias{points_by_week}
 \title{Internal function to get weekly scores}
 \usage{
-points_by_week(l, weeks = c(), inc_transfers)
+points_by_week(f, weeks = c(), inc_transfers)
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{weeks}{Vector of weeks.  If empty then include all weeks}
 

@@ -4,10 +4,10 @@
 \alias{bestFormation}
 \title{Return the best formation}
 \usage{
-bestFormation(l, weeks = c(), managers = c())
+bestFormation(f, weeks = c(), managers = c())
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{weeks}{Vector of weeks.  If empty then include all weeks}
 
