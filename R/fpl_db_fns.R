@@ -104,6 +104,39 @@ fpl_league <- function(l, max_week = 0, out_type = 'total') {
 }
 
 
+#' Return a manager's squad for a particular week
+#'
+#' Return a manager's squad for a particular week
+#'
+#' @param l List of obtained from read_database
+#' @param week Week number
+#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return list of data frames containing teams
+#'
+#' @import dplyr
+#' @export
+squad_by_week <- function(l, week = 1, teams = c()) {
+  entries <- .teamIDs(l, teams)
+  my_week <- week
+  if(!is.numeric(my_week)) stop('error - week should be numeric')
+
+  df_teams <- l$league_weeks %>%
+    filter(entry %in% entries) %>%
+    select(entry, week, element) %>%
+    filter(week == my_week) %>%
+    left_join(l[['players']] %>% select(id, web_name, element_type, team_code), by = c('element' = 'id')) %>%
+    left_join(l[['teams']] %>% select(code, short_name), by = c('team_code' = 'code')) %>%
+    arrange(entry, element_type, short_name, web_name) %>%
+    select(entry, web_name, short_name)
+
+  l.teams <- split.data.frame(df_teams, df_teams$entry)
+  return(l.teams)
+}
+
+
+
 #' Return a list of teams
 #'
 #' Return a list of team IDs from a list of manager names, team names or simply the IDs
