@@ -30,7 +30,7 @@ week_score <- function(d, inc_transfers, entry_use) {
 #' Retrieve weekly scores for a fantasy football league
 #' Used by fpl_league_weekly and fpl_league functions
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param weeks Vector of weeks.  If empty then include all weeks
 #' @param inc_transfsers Boolean.  Should points lost by transfers be taken into account.  A value
 #'     of TRUE subtracts points from weekly totals when transfers cost points
@@ -39,18 +39,18 @@ week_score <- function(d, inc_transfers, entry_use) {
 #'
 #' @import dplyr
 #' @importFrom tidyr unite
-points_by_week <- function(l, weeks = c(), inc_transfers) {
-  if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
-  entry_use <- l[['entry_weeks']] %>%
+points_by_week <- function(f, weeks = c(), inc_transfers) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  entry_use <- f$entry_weeks %>%
     rename(use_entry = entry, use_week = week)
 
-  df <- l[['league_weeks']] %>%
+  df <- f$league_weeks %>%
     filter(week %in% weeks) %>%
-    left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
     group_by(entry, week) %>%
     do(points = week_score(., inc_transfers, entry_use)) %>%
     mutate(points = unlist(points)) %>%
-    left_join(l[['league']], by = c('entry')) %>%
+    left_join(f$league, by = c('entry')) %>%
     unite(team, player_name, entry_name) %>%
     ungroup() %>%
     select(team, week, points) %>%
@@ -64,14 +64,14 @@ points_by_week <- function(l, weeks = c(), inc_transfers) {
 #'
 #' Retrieve weekly scores for a fantasy football league
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param weeks Vector of weeks.  If empty then include all weeks
 #'
 #' @return dataframe containing table
 #'
 #' @export
-fpl_league_weekly <- function(l, weeks = c()) {
-  points_by_week(l, weeks, inc_transfers = FALSE)
+fpl_league_weekly <- function(f, weeks = c()) {
+  points_by_week(f, weeks, inc_transfers = FALSE)
 }
 
 
@@ -79,7 +79,7 @@ fpl_league_weekly <- function(l, weeks = c()) {
 #'
 #' Retrieve a cumulative league table a fantasy football league
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param max_week Maximum week.  Defaults to maximum in database
 #' @param out_type Type of output.  If total then return the total to the maximum week.
 #'     If cumulative then return a cumulative score by week
@@ -87,10 +87,10 @@ fpl_league_weekly <- function(l, weeks = c()) {
 #' @return dataframe containing table
 #'
 #' @export
-fpl_league <- function(l, max_week = 0, out_type = 'total') {
-  if (max_week == 0) max_week <- max(l[['league_weeks']]$week)
+fpl_league <- function(f, max_week = 0, out_type = 'total') {
+  if (max_week == 0) max_week <- f$last_week
   weeks <- seq(max_week)
-  df <- points_by_week(l, weeks, inc_transfers = TRUE)
+  df <- points_by_week(f, weeks, inc_transfers = TRUE)
   if (out_type == 'total') {
     df <- cbind(df[, 1:2], total = apply(df[, 3:ncol(df)], 1, sum))
   } else {
@@ -104,7 +104,7 @@ fpl_league <- function(l, max_week = 0, out_type = 'total') {
 #'
 #' Return a manager's squad for a particular week
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param week Week number
 #' @param teams Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
@@ -113,17 +113,17 @@ fpl_league <- function(l, max_week = 0, out_type = 'total') {
 #'
 #' @import dplyr
 #' @export
-squad_by_week <- function(l, week = 1, teams = c()) {
-  entries <- teamIDs(l, teams)
+squad_by_week <- function(f, week = 1, teams = c()) {
+  entries <- teamIDs(f, teams)
   my_week <- week
   if(!is.numeric(my_week)) stop('error - week should be numeric')
 
-  df_teams <- l$league_weeks %>%
+  df_teams <- f$league_weeks %>%
     filter(entry %in% entries) %>%
     select(entry, week, element) %>%
     filter(week == my_week) %>%
-    left_join(l[['players']] %>% select(id, web_name, element_type, team_code), by = c('element' = 'id')) %>%
-    left_join(l[['teams']] %>% select(code, short_name), by = c('team_code' = 'code')) %>%
+    left_join(f$players %>% select(id, web_name, element_type, team_code), by = c('element' = 'id')) %>%
+    left_join(f$teams %>% select(code, short_name), by = c('team_code' = 'code')) %>%
     arrange(entry, element_type, short_name, web_name) %>%
     select(entry, web_name, short_name)
 
@@ -138,18 +138,18 @@ squad_by_week <- function(l, week = 1, teams = c()) {
 #' Return a list of team IDs from a list of manager names, team names or simply the IDs
 #'     themselves.
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param teams Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
 #'
 #' @return List of team IDs
-teamIDs <- function(l, teams = c()) {
-  if (length(teams) == 0) return(l$league$entry)
-  out.entries <- c(match(teams, l$league$entry),
-                   match(teams, l$league$entry_name),
-                   match(teams, l$league$player_name))
+teamIDs <- function(f, teams = c()) {
+  if (length(teams) == 0) return(f$league$entry)
+  out.entries <- c(match(teams, f$league$entry),
+                   match(teams, f$league$entry_name),
+                   match(teams, f$league$player_name))
   out.entries <- sort(unique(out.entries[!is.na(out.entries)]))
-  return(l$league$entry[out.entries])
+  return(f$league$entry[out.entries])
 }
 
 
@@ -158,7 +158,7 @@ teamIDs <- function(l, teams = c()) {
 #' Retrieve a table indicating points differential between the captain chosen and the
 #'     best choice
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param weeks Vector of weeks.  If empty then include all weeks
 #' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
@@ -168,23 +168,23 @@ teamIDs <- function(l, teams = c()) {
 #' @import dplyr
 #' @importFrom tidyr spread
 #' @export
-captainChoice <- function(l, weeks = c(), managers = c()) {
-  if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
-  entries <- teamIDs(l, managers)
-  df_chosen <- l$league_weeks %>%
+captainChoice <- function(f, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  entries <- teamIDs(f, managers)
+  df_chosen <- f$league_weeks %>%
     filter(entry %in% entries) %>%
     filter(week %in% weeks) %>%
     group_by(entry, week) %>%
     slice(1:11) %>%
     filter(multiplier > 1) %>%
-    left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
     mutate(score_capt = total_points * multiplier)
 
-  df_best <- l$league_weeks %>%
+  df_best <- f$league_weeks %>%
     filter(entry %in% entries) %>%
     filter(week %in% weeks) %>%
     group_by(entry, week) %>%
-    left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
     mutate(score_best = total_points * max(multiplier)) %>%
     top_n(n = 1, wt = score_best) %>%
     slice(1)
@@ -194,7 +194,7 @@ captainChoice <- function(l, weeks = c(), managers = c()) {
     right_join(df_best %>% select(entry, week, score_best), by = c('entry', 'week')) %>%
     mutate(score_capt = ifelse(is.na(score_capt), 0, score_capt)) %>%
     mutate(score_delta = score_best - score_capt) %>%
-    left_join(l[['league']], by = c('entry')) %>%
+    left_join(f$league, by = c('entry')) %>%
     ungroup() %>%
     select(player_name, entry_name, week, score_capt, score_best, score_delta)
 
@@ -212,7 +212,7 @@ captainChoice <- function(l, weeks = c(), managers = c()) {
 #'
 #' Return the formation played in given game weeks
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param weeks Vector of weeks.  If empty then include all weeks
 #' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
@@ -222,23 +222,23 @@ captainChoice <- function(l, weeks = c(), managers = c()) {
 #' @import dplyr
 #' @importFrom tidyr spread
 #' @export
-playedFormation <- function(l, weeks = c(), managers = c()) {
-  if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
-  entries <- teamIDs(l, managers)
+playedFormation <- function(f, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  entries <- teamIDs(f, managers)
 
-  df_formation <- l$league_weeks %>%
+  df_formation <- f$league_weeks %>%
     filter(entry %in% entries) %>%
     filter(week %in% weeks) %>%
     select(entry, week, element, position) %>%
     group_by(entry, week) %>%
     slice(1:11) %>%
-    left_join(l[['players']] %>% select(id, element_type), by = c('element' = 'id')) %>%
+    left_join(f$players %>% select(id, element_type), by = c('element' = 'id')) %>%
     summarise(n_def = sum(element_type == 2), n_mid = sum(element_type == 3), n_fwd = sum(element_type == 4)) %>%
     mutate(formation = paste(n_def, n_mid, n_fwd, sep = '-')) %>%
     select(entry, week, formation) %>%
     ungroup() %>%
     spread(week, formation) %>%
-    left_join(l[['league']] %>% select(entry, entry_name), by = 'entry') %>%
+    left_join(f$league %>% select(entry, entry_name), by = 'entry') %>%
     select(-entry) %>%
     select(entry_name, everything())
 }
@@ -248,7 +248,7 @@ playedFormation <- function(l, weeks = c(), managers = c()) {
 #'
 #' Return the formation leading to the best score in given game weeks
 #'
-#' @param l List of obtained from read_database
+#' @param f an fpl object
 #' @param weeks Vector of weeks.  If empty then include all weeks
 #' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
@@ -258,18 +258,18 @@ playedFormation <- function(l, weeks = c(), managers = c()) {
 #' @import dplyr
 #' @importFrom tidyr spread
 #' @export
-bestFormation <- function(l, weeks = c(), managers = c()) {
-  if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
-  entries <- teamIDs(l, managers)
+bestFormation <- function(f, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  entries <- teamIDs(f, managers)
 
-  df_formation <- l$league_weeks %>%
+  df_formation <- f$league_weeks %>%
     filter(entry %in% entries) %>%
     filter(week %in% weeks) %>%
     select(entry, week, element, position) %>%
     group_by(entry, week) %>%
-    left_join(l[['players']] %>% select(id, element_type), by = c('element' = 'id')) %>%
+    left_join(f$players %>% select(id, element_type), by = c('element' = 'id')) %>%
     filter(element_type != 1) %>%
-    left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
     arrange(week, entry, element_type, desc(total_points)) %>%
     summarise('3-4-3' = sum(total_points[1:3], total_points[6:9], total_points[11:13]),
               '3-5-2' = sum(total_points[1:3], total_points[6:10], total_points[11:12]),
@@ -286,7 +286,7 @@ bestFormation <- function(l, weeks = c(), managers = c()) {
   df_formation <- df_formation %>%
     select(entry, week, max_id) %>%
     spread(week, max_id) %>%
-    left_join(l[['league']] %>% select(entry, entry_name), by = 'entry') %>%
+    left_join(f$league %>% select(entry, entry_name), by = 'entry') %>%
     select(-entry) %>%
     select(entry_name, everything())
   df_formation
