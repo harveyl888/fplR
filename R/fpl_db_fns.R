@@ -147,11 +147,11 @@ squad_by_week <- function(l, week = 1, teams = c()) {
 #'     names.  If empty then include all teams
 #'
 #' @return List of team IDs
-.teamIDs <- function(l, ids = c()) {
-  if (length(ids) == 0) return(l$league$entry)
-  out.entries <- c(match(ids, l$league$entry),
-                   match(ids, l$league$entry_name),
-                   match(ids, l$league$player_name))
+.teamIDs <- function(l, teams = c()) {
+  if (length(teams) == 0) return(l$league$entry)
+  out.entries <- c(match(teams, l$league$entry),
+                   match(teams, l$league$entry_name),
+                   match(teams, l$league$player_name))
   out.entries <- sort(unique(out.entries[!is.na(out.entries)]))
   return(l$league$entry[out.entries])
 }
@@ -164,7 +164,7 @@ squad_by_week <- function(l, week = 1, teams = c()) {
 #'
 #' @param l List of obtained from read_database
 #' @param weeks Vector of weeks.  If empty then include all weeks
-#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
 #'
 #' @return dataframe containing table
@@ -218,7 +218,7 @@ captainChoice <- function(l, weeks = c(), managers = c()) {
 #'
 #' @param l List of obtained from read_database
 #' @param weeks Vector of weeks.  If empty then include all weeks
-#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
 #'
 #' @return dataframe containing table
@@ -254,7 +254,7 @@ playedFormation <- function(l, weeks = c(), managers = c()) {
 #'
 #' @param l List of obtained from read_database
 #' @param weeks Vector of weeks.  If empty then include all weeks
-#' @param teams Vector of teams.  Vector of manager names, manager IDs or team
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
 #'
 #' @return dataframe containing table
