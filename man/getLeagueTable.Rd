@@ -4,14 +4,14 @@
 \alias{getLeagueTable}
 \title{Get a league table}
 \usage{
-getLeagueTable(leagueID = NULL, wk = NULL)
+getLeagueTable(leagueID = NULL, phase = NULL)
 }
 \arguments{
 \item{leagueID}{Numeric league identifier}
 
-\item{wk}{Week number.  If \code{NULL} then return the current league table}
+\item{phase}{Phase number.  If \code{NULL} then return the current league table}
 }
 \description{
-Retrieve a fantasy football league table for a specific week
+Retrieve a fantasy football league table for a specific phase
 }
 

@@ -38,7 +38,7 @@
 #' @return dataframe containing table
 #'
 #' @import dplyr
-#' @import tidyr
+#' @importFrom tidyr unite
 .points_by_week <- function(l, weeks = c(), inc_transfers) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
   entry_use <- l[['entry_weeks']] %>%
@@ -69,8 +69,6 @@
 #'
 #' @return dataframe containing table
 #'
-#' @import dplyr
-#' @import tidyr
 #' @export
 fpl_league_weekly <- function(l, weeks = c()) {
   .points_by_week(l, weeks, inc_transfers = FALSE)
@@ -88,8 +86,6 @@ fpl_league_weekly <- function(l, weeks = c()) {
 #'
 #' @return dataframe containing table
 #'
-#' @import dplyr
-#' @import tidyr
 #' @export
 fpl_league <- function(l, max_week = 0, out_type = 'total') {
   if (max_week == 0) max_week <- max(l[['league_weeks']]$week)
@@ -170,7 +166,7 @@ squad_by_week <- function(l, week = 1, teams = c()) {
 #' @return dataframe containing table
 #'
 #' @import dplyr
-#' @import tidyr
+#' @importFrom tidyr spread
 #' @export
 captainChoice <- function(l, weeks = c(), managers = c()) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
@@ -224,7 +220,7 @@ captainChoice <- function(l, weeks = c(), managers = c()) {
 #' @return dataframe containing table
 #'
 #' @import dplyr
-#' @import tidyr
+#' @importFrom tidyr spread
 #' @export
 playedFormation <- function(l, weeks = c(), managers = c()) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
@@ -260,7 +256,7 @@ playedFormation <- function(l, weeks = c(), managers = c()) {
 #' @return dataframe containing table
 #'
 #' @import dplyr
-#' @import tidyr
+#' @importFrom tidyr spread
 #' @export
 bestFormation <- function(l, weeks = c(), managers = c()) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
