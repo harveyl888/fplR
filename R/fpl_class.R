@@ -21,7 +21,6 @@ fpl <- function(db) {
       last_week = NULL
     )
   )
-  class = "fpl"
 
   df.league <- dbReadTable(db, 'league')
   df.league_weeks <- dbReadTable(db, 'league_weeks')
@@ -30,7 +29,7 @@ fpl <- function(db) {
   df.stats <- dbReadTable(db, 'stats')
   df.teams <- dbReadTable(db, 'teams')
   weeks <- sort(unique(df.league_weeks$week))
-  self<- list(
+  self <- list(
     league = df.league,
     league_weeks = df.league_weeks,
     entry_weeks = df.entry_weeks,
@@ -41,6 +40,23 @@ fpl <- function(db) {
     last_week = weeks[length(weeks)]
   )
 
+  class(self) <- 'fpl'
+
   return(self)
 }
 
+
+#' summarize fpl object
+#'
+#' print a summary of an fpl object
+#'
+#' @return Nothing
+#'
+#' @export
+summary.fpl <- function(object, ...) {
+  out <- object
+  cat("Number of league entries:", nrow(out$league), "\n")
+  cat("Number of weeks:", length(f$weeks), "\n")
+  cat("Number of players:", nrow(f$players), "\n")
+  return(invisible(NULL))
+}
