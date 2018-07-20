@@ -156,26 +156,3 @@ add_to_database <- function(db, leagueID=NULL, stats=FALSE, league=FALSE, weeks=
   return(list(out.stats, out.league, out.entry))
 }
 
-#' Read data back from a MySQL database
-#'
-#' Retrieve all tables fpr subsequent analysis
-#'
-#' @param db open database object returned from dbConnect
-#' @return named list of database tables
-#'
-#' @import DBI
-#' @export
-read_database <- function(db) {
-  df.league <- dbReadTable(db, 'league')
-  df.league_weeks <- dbReadTable(db, 'league_weeks')
-  df.entry_weeks <- dbReadTable(db, 'entry_weeks')
-  df.players <- dbReadTable(db, 'players')
-  df.stats <- dbReadTable(db, 'stats')
-  df.teams <- dbReadTable(db, 'teams')
-  return(list(league = df.league,
-              league_weeks = df.league_weeks,
-              entry_weeks = df.entry_weeks,
-              players = df.players,
-              stats = df.stats,
-              teams = df.teams))
-}
