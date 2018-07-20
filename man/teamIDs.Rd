@@ -4,10 +4,10 @@
 \alias{teamIDs}
 \title{Return a list of teams}
 \usage{
-teamIDs(l, teams = c())
+teamIDs(f, teams = c())
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{teams}{Vector of teams.  Vector of manager names, manager IDs or team
 names.  If empty then include all teams}

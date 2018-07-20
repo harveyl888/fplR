@@ -4,10 +4,10 @@
 \alias{playedFormation}
 \title{Return the formation played}
 \usage{
-playedFormation(l, weeks = c(), managers = c())
+playedFormation(f, weeks = c(), managers = c())
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{weeks}{Vector of weeks.  If empty then include all weeks}
 

@@ -4,10 +4,10 @@
 \alias{squad_by_week}
 \title{Return a manager's squad for a particular week}
 \usage{
-squad_by_week(l, week = 1, teams = c())
+squad_by_week(f, week = 1, teams = c())
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{week}{Week number}
 

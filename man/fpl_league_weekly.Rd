@@ -4,10 +4,10 @@
 \alias{fpl_league_weekly}
 \title{Get weekly scores}
 \usage{
-fpl_league_weekly(l, weeks = c())
+fpl_league_weekly(f, weeks = c())
 }
 \arguments{
-\item{l}{List of obtained from read_database}
+\item{f}{an fpl object}
 
 \item{weeks}{Vector of weeks.  If empty then include all weeks}
 }
