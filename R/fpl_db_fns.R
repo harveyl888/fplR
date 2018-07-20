@@ -8,7 +8,7 @@
 #'     read_database.  It requires that the two columns be remaned (use_entry = entry, use_week = week)
 #'
 #' @import dplyr
-.week_score <- function(d, inc_transfers, entry_use) {
+week_score <- function(d, inc_transfers, entry_use) {
 
   entry_row <- entry_use %>%
     filter(use_entry == d[1, ]$entry & use_week == d[1, ]$week) %>%
@@ -39,7 +39,7 @@
 #'
 #' @import dplyr
 #' @importFrom tidyr unite
-.points_by_week <- function(l, weeks = c(), inc_transfers) {
+points_by_week <- function(l, weeks = c(), inc_transfers) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
   entry_use <- l[['entry_weeks']] %>%
     rename(use_entry = entry, use_week = week)
@@ -48,7 +48,7 @@
     filter(week %in% weeks) %>%
     left_join(l[['stats']] %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
     group_by(entry, week) %>%
-    do(points = .week_score(., inc_transfers, entry_use)) %>%
+    do(points = week_score(., inc_transfers, entry_use)) %>%
     mutate(points = unlist(points)) %>%
     left_join(l[['league']], by = c('entry')) %>%
     unite(team, player_name, entry_name) %>%
@@ -71,7 +71,7 @@
 #'
 #' @export
 fpl_league_weekly <- function(l, weeks = c()) {
-  .points_by_week(l, weeks, inc_transfers = FALSE)
+  points_by_week(l, weeks, inc_transfers = FALSE)
 }
 
 
@@ -90,7 +90,7 @@ fpl_league_weekly <- function(l, weeks = c()) {
 fpl_league <- function(l, max_week = 0, out_type = 'total') {
   if (max_week == 0) max_week <- max(l[['league_weeks']]$week)
   weeks <- seq(max_week)
-  df <- .points_by_week(l, weeks, inc_transfers = TRUE)
+  df <- points_by_week(l, weeks, inc_transfers = TRUE)
   if (out_type == 'total') {
     df <- cbind(df[, 1:2], total = apply(df[, 3:ncol(df)], 1, sum))
   } else {
@@ -114,7 +114,7 @@ fpl_league <- function(l, max_week = 0, out_type = 'total') {
 #' @import dplyr
 #' @export
 squad_by_week <- function(l, week = 1, teams = c()) {
-  entries <- .teamIDs(l, teams)
+  entries <- teamIDs(l, teams)
   my_week <- week
   if(!is.numeric(my_week)) stop('error - week should be numeric')
 
@@ -143,7 +143,7 @@ squad_by_week <- function(l, week = 1, teams = c()) {
 #'     names.  If empty then include all teams
 #'
 #' @return List of team IDs
-.teamIDs <- function(l, teams = c()) {
+teamIDs <- function(l, teams = c()) {
   if (length(teams) == 0) return(l$league$entry)
   out.entries <- c(match(teams, l$league$entry),
                    match(teams, l$league$entry_name),
@@ -170,7 +170,7 @@ squad_by_week <- function(l, week = 1, teams = c()) {
 #' @export
 captainChoice <- function(l, weeks = c(), managers = c()) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
-  entries <- .teamIDs(l, managers)
+  entries <- teamIDs(l, managers)
   df_chosen <- l$league_weeks %>%
     filter(entry %in% entries) %>%
     filter(week %in% weeks) %>%
@@ -224,7 +224,7 @@ captainChoice <- function(l, weeks = c(), managers = c()) {
 #' @export
 playedFormation <- function(l, weeks = c(), managers = c()) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
-  entries <- .teamIDs(l, managers)
+  entries <- teamIDs(l, managers)
 
   df_formation <- l$league_weeks %>%
     filter(entry %in% entries) %>%
@@ -260,7 +260,7 @@ playedFormation <- function(l, weeks = c(), managers = c()) {
 #' @export
 bestFormation <- function(l, weeks = c(), managers = c()) {
   if (length(weeks) == 0) weeks <- seq(max(l[['league_weeks']]$week))
-  entries <- .teamIDs(l, managers)
+  entries <- teamIDs(l, managers)
 
   df_formation <- l$league_weeks %>%
     filter(entry %in% entries) %>%
