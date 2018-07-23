@@ -433,3 +433,41 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 
   return(list(full = df_sub, summary_count = df_sub_summary_count, summary_names = df_sub_summary_names))
 }
+
+
+#' Was the best keeper selected?
+#'
+#' Retrieve a table indicating points differential between the keeper chosen and the
+#'     best choice
+#'
+#' @param f an fpl object
+#' @param weeks Vector of weeks.  If empty then include all weeks
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return dataframe
+#'
+#' @import dplyr
+#' @importFrom tidyr spread
+#' @export
+keeperChoice <- function(f, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  entries <- teamIDs(f, managers)
+
+  df_keepers <- f$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    group_by(entry, week) %>%
+    filter(position %in% c(1, 12)) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    select(entry, week, position, element, total_points) %>%
+    summarise(delta = total_points[position == 1] - total_points[position == 12]) %>%
+    spread(week, delta) %>%
+    left_join(f$league %>% select(entry, entry_name), by = c('entry')) %>%
+    ungroup() %>%
+    select(-entry) %>%
+    select(entry_name, everything())
+
+
+  return(df_keepers)
+}
