@@ -333,3 +333,87 @@ use_chip <- function(f, managers = c()) {
 
   return(df)
 }
+
+
+#' Substitutions by week
+#'
+#' Return a table of substitutions by manager by week
+#'
+#' @param f an fpl object
+#' @param weeks Vector of weeks.  If empty then include all weeks.
+#'     If a vector of length one then determine substitutes up to this week.
+#'     If a vector of length two then determine substitutes between these weeks.
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return list of two dataframes.  The first contains all data and the second contains a summary table
+#'
+#' @import dplyr
+#' @importFrom tidyr spread
+#' @export
+substitutions <- function(f, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  if (length(weeks) == 1) weeks <- seq(weeks)
+  if (length(weeks) == 2) weeks <- seq(weeks[1], weeks[2])
+  entries <- teamIDs(f, managers)
+
+  if (length(weeks) == 1) stop ('Must have more than one week')
+
+  df_pos <- data.frame(type = c(1,2,3,4), pos = c('GLK', 'DEF', 'MID', 'FWD'), stringsAsFactors = FALSE)
+
+  df_sub_split <- f$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    select(entry, week, element, position) %>%
+    left_join(f$players %>% select(id, element_type), by = c('element' = 'id')) %>%
+    arrange(entry, week, element_type, element)
+
+  # separate by manager
+  l.sub_split <- split.data.frame(df_sub_split, df_sub_split$entry)
+
+  # look for changes in team between two weeks by position
+  l.sub <- lapply(l.sub_split, function(x) {
+    out <- lapply(2:length(weeks), function(i) {
+      entry_id <- x[1, 'entry']
+      df_w1 <- x %>%
+        filter(week == weeks[i-1]) %>%
+        select(element, element_type)
+      df_w2 <- x %>%
+        filter(week == weeks[i]) %>%
+        select(element, element_type)
+      delta <- setdiff(df_w1, df_w2)
+      if (nrow(delta) > 0) {
+        delta_rev <- setdiff(df_w2, df_w1)
+        data.frame(entry = entry_id, week = i, type = delta$element_type, id_out = delta$element, id_in = delta_rev$element)
+      }
+    })
+    out <- Filter(Negate(is.null), out)   # remove nulls
+    bind_rows(out)
+  })
+  df_sub <- bind_rows(l.sub) %>%
+    left_join(f$players %>% select(id, web_name, team_code), by = c('id_out' = 'id')) %>%
+    rename(name_out = web_name, team_id_out = team_code) %>%
+    left_join(f$players %>% select(id, web_name, team_code), by = c('id_in' = 'id')) %>%
+    rename(name_in = web_name, team_id_in = team_code) %>%
+    left_join(f$teams %>% select(code, short_name), by = c('team_id_out' = 'code')) %>%
+    rename(team_out = short_name) %>%
+    left_join(f$teams %>% select(code, short_name), by = c('team_id_in' = 'code')) %>%
+    rename(team_in = short_name) %>%
+    left_join(df_pos, by = 'type') %>%
+    left_join(f$league %>% select(entry, entry_name), by = 'entry') %>%
+    select(entry_name, week, pos, name_out, team_out, name_in, team_in)
+
+  df_sub_summary <- f$league %>%
+    filter(entry %in% entries) %>%
+    select(entry, entry_name) %>%
+    left_join(df_sub %>%
+                select(entry_name, week) %>%
+                group_by(entry_name, week) %>%
+                summarise(count = n()), by = 'entry_name') %>%
+    select(-entry) %>%
+    spread(week, count)
+
+  if('<NA>' %in% names(df_sub_summary)) df_sub_summary[['<NA>']] <- NULL
+
+  return(list(full = df_sub, summary = df_sub_summary))
+}
