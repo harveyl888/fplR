@@ -435,6 +435,53 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 }
 
 
+#' Determine points left on bench
+#'
+#' Calculate number of points left on bench as total and as percentage of weekly score
+#'
+#' @param f an fpl object
+#' @param weeks Vector of weeks.  If empty then include all weeks
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return list of two dataframes
+#'
+#' @import dplyr
+#' @importFrom tidyr spread
+#' @export
+points_on_bench <- function(f, weeks = c(), managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  entries <- teamIDs(f, managers)
+
+  # calculate points left on bench
+  df_pob <- f$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    group_by(entry, week) %>%
+    slice(12:15) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    select(entry, week, total_points) %>%
+    summarise(points_on_bench = sum(total_points))
+
+  # calculate weekly points (no captain multiplier or chips)
+  df_weekly_points <- f$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    group_by(entry, week) %>%
+    slice(1:11) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    select(entry, week, total_points) %>%
+    summarise(points_on_field = sum(total_points)) %>%
+    left_join(df_pob, by = c('entry', 'week')) %>%
+    mutate(percent = as.integer(100 * points_on_bench / points_on_field))
+
+  df_pob_wide <- df_pob %>%
+    spread(week, points_on_bench)
+
+  return(list(all = df_weekly_points, pob = df_pob_wide))
+}
+
+
 #' Was the best keeper selected?
 #'
 #' Retrieve a table indicating points differential between the keeper chosen and the
