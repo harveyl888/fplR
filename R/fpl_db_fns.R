@@ -292,3 +292,44 @@ bestFormation <- function(f, weeks = c(), managers = c()) {
   df_formation
 
 }
+
+
+#' List chip usage
+#'
+#' Return a data frame of weeks when chips have been used
+#'
+#' @param f an fpl object
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return dataframe containing weekly table of chips
+#'
+#' @import dplyr
+#' @importFrom tidyr spread
+#' @export
+use_chip <- function(f, managers = c()) {
+  entries <- teamIDs(f, managers)
+  df_chips <- f$entry_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(!chip == '') %>%
+    select(entry, week, chip) %>%
+    mutate(chip = if_else(grepl('wildcard', chip), 'wildcard_1', chip))
+
+  # identify second use of wildcard
+  wild_2 <- which(duplicated(df_chips[, c('entry', 'chip')]))
+  if (length(wild_2) > 0) {
+    df_chips[wild_2, 'chip'] <- 'wildcard_2'
+  }
+
+  # convert to wide
+  df_chips <- df_chips %>%
+    spread(chip, week)
+
+  df <- f$league %>%
+    filter(entry %in% entries) %>%
+    select(entry, entry_name) %>%
+    left_join(df_chips, by = 'entry') %>%
+    select(-entry)
+
+  return(df)
+}
