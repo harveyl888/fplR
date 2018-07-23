@@ -17,7 +17,12 @@ If a vector of length two then determine substitutes between these weeks.}
 names.  If empty then include all teams}
 }
 \value{
-list of two dataframes.  The first contains all data and the second contains a summary table
+list of three dataframes.  The first contains all data and the second contains a summary table
+    #' \itemize{
+      \item substitute data - team, week, position, player out (and team id), player in (and team id)
+      \item summary of subs by weekly count
+      \item summary of subs by player names (out -> in)
+    }
 }
 \description{
 Return a table of substitutions by manager by week

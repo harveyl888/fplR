@@ -346,7 +346,12 @@ use_chip <- function(f, managers = c()) {
 #' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
 #'
-#' @return list of two dataframes.  The first contains all data and the second contains a summary table
+#' @return list of three dataframes.  The first contains all data and the second contains a summary table
+#'     #' \itemize{
+#'       \item substitute data - team, week, position, player out (and team id), player in (and team id)
+#'       \item summary of subs by weekly count
+#'       \item summary of subs by player names (out -> in)
+#'     }
 #'
 #' @import dplyr
 #' @importFrom tidyr spread
@@ -403,7 +408,7 @@ substitutions <- function(f, weeks = c(), managers = c()) {
     left_join(f$league %>% select(entry, entry_name), by = 'entry') %>%
     select(entry_name, week, pos, name_out, team_out, name_in, team_in)
 
-  df_sub_summary <- f$league %>%
+  df_sub_summary_count <- f$league %>%
     filter(entry %in% entries) %>%
     select(entry, entry_name) %>%
     left_join(df_sub %>%
@@ -413,7 +418,18 @@ substitutions <- function(f, weeks = c(), managers = c()) {
     select(-entry) %>%
     spread(week, count)
 
+  df_sub_summary_names <- f$league %>%
+    filter(entry %in% entries) %>%
+    select(entry, entry_name) %>%
+    left_join(df_sub %>%
+                mutate(transfer = paste0(name_out, ' -> ', name_in)) %>%
+                select(entry_name, week, transfer) %>%
+                group_by(entry_name, week) %>%
+                summarise(transfer = paste0(transfer, collapse = '; ')), by = 'entry_name') %>%
+    select(-entry) %>%
+    spread(week, transfer)
+
   if('<NA>' %in% names(df_sub_summary)) df_sub_summary[['<NA>']] <- NULL
 
-  return(list(full = df_sub, summary = df_sub_summary))
+  return(list(full = df_sub, summary_count = df_sub_summary_count, summary_names = df_sub_summary_names))
 }
