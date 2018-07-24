@@ -429,7 +429,8 @@ substitutions <- function(f, weeks = c(), managers = c()) {
     select(-entry) %>%
     spread(week, transfer)
 
-  if('<NA>' %in% names(df_sub_summary)) df_sub_summary[['<NA>']] <- NULL
+  if('<NA>' %in% names(df_sub_summary_count)) df_sub_summary_count[['<NA>']] <- NULL
+  if('<NA>' %in% names(df_sub_summary_names)) df_sub_summary_names[['<NA>']] <- NULL
 
   return(list(full = df_sub, summary_count = df_sub_summary_count, summary_names = df_sub_summary_names))
 }
