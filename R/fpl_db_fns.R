@@ -474,10 +474,16 @@ points_on_bench <- function(f, weeks = c(), managers = c()) {
     select(entry, week, total_points) %>%
     summarise(points_on_field = sum(total_points)) %>%
     left_join(df_pob, by = c('entry', 'week')) %>%
-    mutate(percent = as.integer(100 * points_on_bench / points_on_field))
+    left_join(f$league %>% select(entry, entry_name), by = c('entry')) %>%
+    mutate(percent = as.integer(100 * points_on_bench / points_on_field)) %>%
+    ungroup() %>%
+    select(entry_name, week, points_on_field, points_on_bench, percent)
 
   df_pob_wide <- df_pob %>%
-    spread(week, points_on_bench)
+    spread(week, points_on_bench) %>%
+    left_join(f$league %>% select(entry, entry_name), by = c('entry')) %>%
+    select(-entry) %>%
+    select(entry_name, everything())
 
   return(list(all = df_weekly_points, pob = df_pob_wide))
 }
