@@ -436,6 +436,53 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 }
 
 
+#' Substitution Analysis
+#'
+#' Analyze substitutions - how beneficial were the substitutions?
+#'
+#' @param f an fpl object
+#' @param start_week Integer.  Week to start the analysis from (default = 2)
+#' @param number_weeks Integer.  Number of weeks to run analysus (default = current week).
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#'
+substitution_analysis <- function(f, start_week = 2, number_weeks = 0, managers = c()) {
+  if (start_week < 2) stop ('start_week must be at least 2')
+  l.subs <- substitutions(f, weeks = c(start_week:(start_week - 1)), managers = managers)
+  df.subs <- l.subs[[1]] %>%
+    mutate(r = row_number())
+
+  ## separate by players in and players out and switch to a long format
+  df.subs_l <- bind_rows(df.subs %>% select('r', 'entry_name', 'week', 'pos', name = 'name_out', team = 'team_out') %>% mutate(direction = 'out'),
+                         df.subs %>% select('r', 'entry_name', 'week', 'pos', name = 'name_in', team = 'team_in') %>% mutate(direction = 'in')) %>%
+    left_join(f$teams %>% select(code, short_name), by = c('team' = 'short_name')) %>%
+    left_join(f$players %>% select(id, web_name, team_code), by = c('name' = 'web_name', 'code' = 'team_code'))
+
+  weeks <- start_week:(start_week + number_weeks - 1)
+
+  ## calculate score over multiple weeks and join
+  df.subs_score <- df.subs_l %>%
+    left_join(f$stats %>%
+                select(id, week, total_points) %>%
+                filter(week %in% weeks) %>%
+                group_by(id) %>%
+                summarise(points = sum(total_points)),
+              by = 'id')
+
+  ## split table by players in / out and rejoin
+  df.subs_final <- df.subs_score %>%
+    filter(direction == 'in') %>%
+    select(r, entry_name, pos, 'name_in' = name, 'team_in' = team, 'points_in' = points) %>%
+    left_join(df.subs_score %>%
+                filter(direction == 'out') %>%
+                select(r, 'name_out' = name, 'team_out' = team, 'points_out' = points),
+              by = 'r') %>%
+    mutate(points_gained = points_in - points_out) %>%
+    select(-r)
+  return(df.subs_final)
+}
+
 #' Determine points left on bench
 #'
 #' Calculate number of points left on bench as total and as percentage of weekly score
