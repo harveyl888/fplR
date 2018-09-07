@@ -448,8 +448,9 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 #'
 #'
 substitution_analysis <- function(f, start_week = 2, number_weeks = 0, managers = c()) {
-  if (start_week < 2) stop ('start_week must be at least 2')
-  l.subs <- substitutions(f, weeks = c(start_week:(start_week - 1)), managers = managers)
+  if (start_week < 1) stop ('start_week must be at least 1')
+  weeks <- start_week:(start_week + number_weeks - 1)
+  l.subs <- substitutions(f, weeks = weeks, managers = managers)
   df.subs <- l.subs[[1]] %>%
     mutate(r = row_number())
 
@@ -459,7 +460,6 @@ substitution_analysis <- function(f, start_week = 2, number_weeks = 0, managers 
     left_join(f$teams %>% select(code, short_name), by = c('team' = 'short_name')) %>%
     left_join(f$players %>% select(id, web_name, team_code), by = c('name' = 'web_name', 'code' = 'team_code'))
 
-  weeks <- start_week:(start_week + number_weeks - 1)
 
   ## calculate score over multiple weeks and join
   df.subs_score <- df.subs_l %>%
