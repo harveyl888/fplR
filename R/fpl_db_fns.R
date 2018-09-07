@@ -357,12 +357,19 @@ use_chip <- function(f, managers = c()) {
 #' @importFrom tidyr spread
 #' @export
 substitutions <- function(f, weeks = c(), managers = c()) {
-  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
-  if (length(weeks) == 1) weeks <- seq(weeks)
-  if (length(weeks) == 2) weeks <- seq(weeks[1], weeks[2])
-  entries <- teamIDs(f, managers)
 
-  if (length(weeks) == 1) stop ('Must have more than one week')
+  if (length(weeks) == 0) {
+    weeks <- seq(max(f$league_weeks$week))
+  } else if (length(weeks) == 2) {
+    weeks <- seq(weeks[1], weeks[2])
+  } else if (length(weeks) == 1) {
+    if (weeks == 1) {
+      stop ('Cannot run just on week 1')
+    } else {
+      weeks <- c(weeks -1, weeks)
+    }
+  }
+  entries <- teamIDs(f, managers)
 
   df_pos <- data.frame(type = c(1,2,3,4), pos = c('GLK', 'DEF', 'MID', 'FWD'), stringsAsFactors = FALSE)
 
@@ -389,7 +396,7 @@ substitutions <- function(f, weeks = c(), managers = c()) {
       delta <- setdiff(df_w1, df_w2)
       if (nrow(delta) > 0) {
         delta_rev <- setdiff(df_w2, df_w1)
-        data.frame(entry = entry_id, week = i, type = delta$element_type, id_out = delta$element, id_in = delta_rev$element)
+        data.frame(entry = entry_id, week = weeks[i], type = delta$element_type, id_out = delta$element, id_in = delta_rev$element)
       }
     })
     out <- Filter(Negate(is.null), out)   # remove nulls
@@ -447,10 +454,14 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 #'     names.  If empty then include all teams
 #'
 #'
-substitution_analysis <- function(f, start_week = 2, number_weeks = 0, managers = c()) {
-  if (start_week < 1) stop ('start_week must be at least 1')
+substitution_analysis <- function(f, start_week = 2, number_weeks = 1, managers = c()) {
+  if (start_week < 2) stop ('start_week must be at least 2')
+  if (number_weeks < 1) stop ('number_weeks must be at least 1')
+
   weeks <- start_week:(start_week + number_weeks - 1)
-  l.subs <- substitutions(f, weeks = weeks, managers = managers)
+  if (weeks[length(weeks)] > f$last_week) warning(paste0('Number of weeks exceeds total weeks.  Calculation will run to week ', f$last_week))
+
+  l.subs <- substitutions(f, weeks = start_week, managers = managers)
   df.subs <- l.subs[[1]] %>%
     mutate(r = row_number())
 
@@ -459,7 +470,6 @@ substitution_analysis <- function(f, start_week = 2, number_weeks = 0, managers 
                          df.subs %>% select('r', 'entry_name', 'week', 'pos', name = 'name_in', team = 'team_in') %>% mutate(direction = 'in')) %>%
     left_join(f$teams %>% select(code, short_name), by = c('team' = 'short_name')) %>%
     left_join(f$players %>% select(id, web_name, team_code), by = c('name' = 'web_name', 'code' = 'team_code'))
-
 
   ## calculate score over multiple weeks and join
   df.subs_score <- df.subs_l %>%
