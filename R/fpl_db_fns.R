@@ -446,6 +446,8 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 #' Substitution Analysis
 #'
 #' Analyze substitutions - how beneficial were the substitutions?
+#' Take the substitutions applied in a game week and project out a number of weeks to determine
+#' the points differential between the added player and the dropped player.
 #'
 #' @param f an fpl object
 #' @param start_week Integer.  Week to start the analysis from (default = 2)
@@ -453,7 +455,8 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 #' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
 #'
-#'
+#' @import dplyr
+#' @export
 substitution_analysis <- function(f, start_week = 2, number_weeks = 1, managers = c()) {
   if (start_week < 2) stop ('start_week must be at least 2')
   if (number_weeks < 1) stop ('number_weeks must be at least 1')
