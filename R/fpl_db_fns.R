@@ -380,66 +380,75 @@ substitutions <- function(f, weeks = c(), managers = c()) {
     left_join(f$players %>% select(id, element_type), by = c('element' = 'id')) %>%
     arrange(entry, week, element_type, element)
 
-  # separate by manager
-  l.sub_split <- split.data.frame(df_sub_split, df_sub_split$entry)
+  if(nrow(df_sub_split) == 0) {
+    return(list(full = NULL, summary_count = NULL, summary_names = NULL))
+  } else {
+    # separate by manager
+    l.sub_split <- split.data.frame(df_sub_split, df_sub_split$entry)
 
-  # look for changes in team between two weeks by position
-  l.sub <- lapply(l.sub_split, function(x) {
-    out <- lapply(2:length(weeks), function(i) {
-      entry_id <- x[1, 'entry']
-      df_w1 <- x %>%
-        filter(week == weeks[i-1]) %>%
-        select(element, element_type)
-      df_w2 <- x %>%
-        filter(week == weeks[i]) %>%
-        select(element, element_type)
-      delta <- setdiff(df_w1, df_w2)
-      if (nrow(delta) > 0) {
-        delta_rev <- setdiff(df_w2, df_w1)
-        data.frame(entry = entry_id, week = weeks[i], type = delta$element_type, id_out = delta$element, id_in = delta_rev$element)
-      }
+    # look for changes in team between two weeks by position
+    l.sub <- lapply(l.sub_split, function(x) {
+      out <- lapply(2:length(weeks), function(i) {
+        entry_id <- x[1, 'entry']
+        df_w1 <- x %>%
+          filter(week == weeks[i-1]) %>%
+          select(element, element_type)
+        df_w2 <- x %>%
+          filter(week == weeks[i]) %>%
+          select(element, element_type)
+        delta <- setdiff(df_w1, df_w2)
+        if (nrow(delta) > 0) {
+          delta_rev <- setdiff(df_w2, df_w1)
+          data.frame(entry = entry_id, week = weeks[i], type = delta$element_type, id_out = delta$element, id_in = delta_rev$element)
+        }
+      })
+      out <- Filter(Negate(is.null), out)   # remove nulls
+      bind_rows(out)
     })
-    out <- Filter(Negate(is.null), out)   # remove nulls
-    bind_rows(out)
-  })
-  df_sub <- bind_rows(l.sub) %>%
-    left_join(f$players %>% select(id, web_name, team_code), by = c('id_out' = 'id')) %>%
-    rename(name_out = web_name, team_id_out = team_code) %>%
-    left_join(f$players %>% select(id, web_name, team_code), by = c('id_in' = 'id')) %>%
-    rename(name_in = web_name, team_id_in = team_code) %>%
-    left_join(f$teams %>% select(code, short_name), by = c('team_id_out' = 'code')) %>%
-    rename(team_out = short_name) %>%
-    left_join(f$teams %>% select(code, short_name), by = c('team_id_in' = 'code')) %>%
-    rename(team_in = short_name) %>%
-    left_join(df_pos, by = 'type') %>%
-    left_join(f$league %>% select(entry, entry_name), by = 'entry') %>%
-    select(entry_name, week, pos, name_out, team_out, name_in, team_in)
 
-  df_sub_summary_count <- f$league %>%
-    filter(entry %in% entries) %>%
-    select(entry, entry_name) %>%
-    left_join(df_sub %>%
-                select(entry_name, week) %>%
-                group_by(entry_name, week) %>%
-                summarise(count = n()), by = 'entry_name') %>%
-    select(-entry) %>%
-    spread(week, count)
+    if(any(sapply(l.sub, length)) > 0) {
+      df_sub <- bind_rows(l.sub) %>%
+        left_join(f$players %>% select(id, web_name, team_code), by = c('id_out' = 'id')) %>%
+        rename(name_out = web_name, team_id_out = team_code) %>%
+        left_join(f$players %>% select(id, web_name, team_code), by = c('id_in' = 'id')) %>%
+        rename(name_in = web_name, team_id_in = team_code) %>%
+        left_join(f$teams %>% select(code, short_name), by = c('team_id_out' = 'code')) %>%
+        rename(team_out = short_name) %>%
+        left_join(f$teams %>% select(code, short_name), by = c('team_id_in' = 'code')) %>%
+        rename(team_in = short_name) %>%
+        left_join(df_pos, by = 'type') %>%
+        left_join(f$league %>% select(entry, entry_name), by = 'entry') %>%
+        select(entry_name, week, pos, name_out, team_out, name_in, team_in)
 
-  df_sub_summary_names <- f$league %>%
-    filter(entry %in% entries) %>%
-    select(entry, entry_name) %>%
-    left_join(df_sub %>%
-                mutate(transfer = paste0(name_out, ' -> ', name_in)) %>%
-                select(entry_name, week, transfer) %>%
-                group_by(entry_name, week) %>%
-                summarise(transfer = paste0(transfer, collapse = '; ')), by = 'entry_name') %>%
-    select(-entry) %>%
-    spread(week, transfer)
+      df_sub_summary_count <- f$league %>%
+        filter(entry %in% entries) %>%
+        select(entry, entry_name) %>%
+        left_join(df_sub %>%
+                    select(entry_name, week) %>%
+                    group_by(entry_name, week) %>%
+                    summarise(count = n()), by = 'entry_name') %>%
+        select(-entry) %>%
+        spread(week, count)
 
-  if('<NA>' %in% names(df_sub_summary_count)) df_sub_summary_count[['<NA>']] <- NULL
-  if('<NA>' %in% names(df_sub_summary_names)) df_sub_summary_names[['<NA>']] <- NULL
+      df_sub_summary_names <- f$league %>%
+        filter(entry %in% entries) %>%
+        select(entry, entry_name) %>%
+        left_join(df_sub %>%
+                    mutate(transfer = paste0(name_out, ' -> ', name_in)) %>%
+                    select(entry_name, week, transfer) %>%
+                    group_by(entry_name, week) %>%
+                    summarise(transfer = paste0(transfer, collapse = '; ')), by = 'entry_name') %>%
+        select(-entry) %>%
+        spread(week, transfer)
 
-  return(list(full = df_sub, summary_count = df_sub_summary_count, summary_names = df_sub_summary_names))
+      if('<NA>' %in% names(df_sub_summary_count)) df_sub_summary_count[['<NA>']] <- NULL
+      if('<NA>' %in% names(df_sub_summary_names)) df_sub_summary_names[['<NA>']] <- NULL
+
+      return(list(full = df_sub, summary_count = df_sub_summary_count, summary_names = df_sub_summary_names))
+    } else {
+      return(list(full = NULL, summary_count = NULL, summary_names = NULL))
+    }
+  }
 }
 
 
@@ -465,35 +474,39 @@ substitution_analysis <- function(f, start_week = 2, number_weeks = 1, managers 
   if (weeks[length(weeks)] > f$last_week) warning(paste0('Number of weeks exceeds total weeks.  Calculation will run to week ', f$last_week))
 
   l.subs <- substitutions(f, weeks = start_week, managers = managers)
-  df.subs <- l.subs[[1]] %>%
-    mutate(r = row_number())
+  if (!is.null(l.subs[[1]])) {
+    df.subs <- l.subs[[1]] %>%
+      mutate(r = row_number())
 
-  ## separate by players in and players out and switch to a long format
-  df.subs_l <- bind_rows(df.subs %>% select('r', 'entry_name', 'week', 'pos', name = 'name_out', team = 'team_out') %>% mutate(direction = 'out'),
-                         df.subs %>% select('r', 'entry_name', 'week', 'pos', name = 'name_in', team = 'team_in') %>% mutate(direction = 'in')) %>%
-    left_join(f$teams %>% select(code, short_name), by = c('team' = 'short_name')) %>%
-    left_join(f$players %>% select(id, web_name, team_code), by = c('name' = 'web_name', 'code' = 'team_code'))
+    ## separate by players in and players out and switch to a long format
+    df.subs_l <- bind_rows(df.subs %>% select('r', 'entry_name', 'week', 'pos', name = 'name_out', team = 'team_out') %>% mutate(direction = 'out'),
+                           df.subs %>% select('r', 'entry_name', 'week', 'pos', name = 'name_in', team = 'team_in') %>% mutate(direction = 'in')) %>%
+      left_join(f$teams %>% select(code, short_name), by = c('team' = 'short_name')) %>%
+      left_join(f$players %>% select(id, web_name, team_code), by = c('name' = 'web_name', 'code' = 'team_code'))
 
-  ## calculate score over multiple weeks and join
-  df.subs_score <- df.subs_l %>%
-    left_join(f$stats %>%
-                select(id, week, total_points) %>%
-                filter(week %in% weeks) %>%
-                group_by(id) %>%
-                summarise(points = sum(total_points)),
-              by = 'id')
+    ## calculate score over multiple weeks and join
+    df.subs_score <- df.subs_l %>%
+      left_join(f$stats %>%
+                  select(id, week, total_points) %>%
+                  filter(week %in% weeks) %>%
+                  group_by(id) %>%
+                  summarise(points = sum(total_points)),
+                by = 'id')
 
-  ## split table by players in / out and rejoin
-  df.subs_final <- df.subs_score %>%
-    filter(direction == 'in') %>%
-    select(r, entry_name, pos, 'name_in' = name, 'team_in' = team, 'points_in' = points) %>%
-    left_join(df.subs_score %>%
-                filter(direction == 'out') %>%
-                select(r, 'name_out' = name, 'team_out' = team, 'points_out' = points),
-              by = 'r') %>%
-    mutate(points_gained = points_in - points_out) %>%
-    select(-r)
-  return(df.subs_final)
+    ## split table by players in / out and rejoin
+    df.subs_final <- df.subs_score %>%
+      filter(direction == 'in') %>%
+      select(r, entry_name, pos, 'name_in' = name, 'team_in' = team, 'points_in' = points) %>%
+      left_join(df.subs_score %>%
+                  filter(direction == 'out') %>%
+                  select(r, 'name_out' = name, 'team_out' = team, 'points_out' = points),
+                by = 'r') %>%
+      mutate(points_gained = points_in - points_out) %>%
+      select(-r)
+    return(df.subs_final)
+  } else {
+    return(NULL)
+  }
 }
 
 #' Determine points left on bench
