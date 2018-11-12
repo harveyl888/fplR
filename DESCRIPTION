@@ -8,6 +8,8 @@ Description: Functions To Process Fantasy Premiership Data
 License: GPL-3
 LazyData: TRUE
 Imports:
+    DBI,
     dplyr,
-    jsonlite
+    jsonlite,
+    tidyr
 RoxygenNote: 5.0.0
