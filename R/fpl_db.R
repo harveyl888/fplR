@@ -47,12 +47,13 @@ initialize_database <- function(db, leagueID=NULL) {
 #' Retrieve fantasy football data from fantasy.premierleague.com site and
 #' add to a MySQL database
 #'
+#' @param db open database object returned from dbConnect
 #' @param leagueID Numeric league identifier
 #' @param stats Boolean.  If true update stats table
 #' @param league Boolean.  If true update league table
 #' @param weeks vector of weeks to collect data for
 #' @param all Boolean.  If true collect data for all weeks (overrides weeks vector)
-#' @param all Boolean.  If true a progress bar is displayed
+#' @param progressbar Boolean.  If true a progress bar is displayed
 #'
 #' @import DBI
 #' @import dplyr

@@ -8,6 +8,8 @@ add_to_database(db, leagueID = NULL, stats = FALSE, league = FALSE,
   weeks = c(), all = FALSE, progressbar = FALSE)
 }
 \arguments{
+\item{db}{open database object returned from dbConnect}
+
 \item{leagueID}{Numeric league identifier}
 
 \item{stats}{Boolean.  If true update stats table}
@@ -18,7 +20,7 @@ add_to_database(db, leagueID = NULL, stats = FALSE, league = FALSE,
 
 \item{all}{Boolean.  If true collect data for all weeks (overrides weeks vector)}
 
-\item{all}{Boolean.  If true a progress bar is displayed}
+\item{progressbar}{Boolean.  If true a progress bar is displayed}
 }
 \description{
 Retrieve fantasy football data from fantasy.premierleague.com site and
