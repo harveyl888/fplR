@@ -13,4 +13,3 @@ element_types and events
 \description{
 Retrieve fantasy football data from fantasy.premierleague.com site.
 }
-

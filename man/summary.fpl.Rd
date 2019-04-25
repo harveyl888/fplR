@@ -12,4 +12,3 @@ Nothing
 \description{
 print a summary of an fpl object
 }
-

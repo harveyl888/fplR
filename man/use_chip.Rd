@@ -18,4 +18,3 @@ dataframe containing weekly table of chips
 \description{
 Return a data frame of weeks when chips have been used
 }
-

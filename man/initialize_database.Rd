@@ -15,4 +15,3 @@ initialize_database(db, leagueID = NULL)
 Retrieve fantasy football data from fantasy.premierleague.com site and
 add to a MySQL database
 }
-

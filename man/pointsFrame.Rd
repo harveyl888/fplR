@@ -14,4 +14,3 @@ pointsFrame(fpl = NULL, maxWeek = NULL)
 \description{
 Return a data frame of players and points up to a maximum week
 }
-

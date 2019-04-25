@@ -14,4 +14,3 @@ playerCount(l.teams, fpl = NULL)
 \description{
 Identify players included in and missing from fantasy teams
 }
-

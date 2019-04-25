@@ -17,4 +17,3 @@ read_database.  It requires that the two columns be remaned (use_entry = entry, 
 \description{
 Internal function to return a weekly total for a grouped team and week
 }
-

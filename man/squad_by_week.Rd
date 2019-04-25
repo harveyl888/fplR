@@ -20,4 +20,3 @@ list of data frames containing teams
 \description{
 Return a manager's squad for a particular week
 }
-

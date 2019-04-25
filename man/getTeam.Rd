@@ -14,4 +14,3 @@ getTeam(entry = NULL, wk = 1)
 \description{
 Return team information from a specific week.
 }
-

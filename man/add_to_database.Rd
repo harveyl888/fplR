@@ -26,4 +26,3 @@ add_to_database(db, leagueID = NULL, stats = FALSE, league = FALSE,
 Retrieve fantasy football data from fantasy.premierleague.com site and
 add to a MySQL database
 }
-

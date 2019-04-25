@@ -21,4 +21,3 @@ dataframe
 Retrieve a table indicating points differential between the keeper chosen and the
     best choice
 }
-

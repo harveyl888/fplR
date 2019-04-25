@@ -12,4 +12,3 @@ getEvent(wk = 1)
 \description{
 Return point details of all players from a particular week
 }
-

@@ -20,4 +20,3 @@ dataframe containing table
 \description{
 Return the formation played in given game weeks
 }
-

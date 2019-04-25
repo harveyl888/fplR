@@ -12,4 +12,3 @@ getEntry(entry = NULL)
 \description{
 Return entry details and historical league information
 }
-

@@ -21,4 +21,3 @@ dataframe containing table
 Retrieve weekly scores for a fantasy football league
 Used by fpl_league_weekly and fpl_league functions
 }
-

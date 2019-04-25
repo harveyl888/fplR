@@ -17,4 +17,3 @@ dataframe containing table
 \description{
 Retrieve weekly scores for a fantasy football league
 }
-

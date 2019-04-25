@@ -21,4 +21,3 @@ dataframe containing table
 Retrieve a table indicating points differential between the captain chosen and the
     best choice
 }
-

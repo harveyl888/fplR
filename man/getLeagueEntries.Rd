@@ -16,4 +16,3 @@ getLeagueEntries(leagueID, wk = 1, fpl = NULL)
 \description{
 Return a list of dataframes each containing an entry
 }
-

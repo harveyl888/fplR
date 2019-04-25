@@ -12,4 +12,3 @@ fpl(db)
 \description{
 Create an FPL object from a stored database
 }
-

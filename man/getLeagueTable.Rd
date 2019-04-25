@@ -14,4 +14,3 @@ getLeagueTable(leagueID = NULL, phase = NULL)
 \description{
 Retrieve a fantasy football league table for a specific phase
 }
-

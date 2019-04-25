@@ -20,4 +20,3 @@ dataframe containing table
 \description{
 Retrieve a cumulative league table a fantasy football league
 }
-

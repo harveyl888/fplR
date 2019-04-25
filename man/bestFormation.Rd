@@ -20,4 +20,3 @@ dataframe containing table
 \description{
 Return the formation leading to the best score in given game weeks
 }
-

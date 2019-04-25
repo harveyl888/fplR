@@ -19,4 +19,3 @@ List of team IDs
 Return a list of team IDs from a list of manager names, team names or simply the IDs
     themselves.
 }
-

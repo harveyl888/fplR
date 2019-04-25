@@ -20,4 +20,3 @@ list of two dataframes
 \description{
 Calculate number of points left on bench as total and as percentage of weekly score
 }
-

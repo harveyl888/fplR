@@ -27,4 +27,3 @@ list of three dataframes.  The first contains all data and the second contains a
 \description{
 Return a table of substitutions by manager by week
 }
-
