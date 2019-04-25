@@ -509,6 +509,91 @@ substitution_analysis <- function(f, start_week = 2, number_weeks = 1, managers 
   }
 }
 
+
+#' week_dropped
+#'
+#' helper function to determine the week a player was dropped
+#'
+#' @param player.  Player's name
+#' @param team.  Player's team
+#' @param week_added.  Initial week to use for search - player dropped at some point after this week
+#' @param max_weeks.  Week to return if player has not been dropped (typically maximum week of data)
+#' @data.  Substitution data frame - first list element output from `substitutions` function
+#'
+#' @return.  Integer.  Week player dropped or `max_weeks` if player has not been dropped
+#'
+#' @import dplyr
+.week_dropped <- function(player = NA, team = NA, week_added = NA, max_weeks = NA, data = NA) {
+  if (any(is.na(c(player, team, week_added, data, max_weeks)))) stop ('internal function: data are missing from .week_dropped')
+
+  df <- data %>%
+    filter(name_out == player & team_out == team & week > week_added) %>%
+    arrange(week)
+
+  if (nrow(df) > 0) {
+    return(df[1, ]$week)
+  } else {
+    return(max_weeks)
+  }
+}
+
+
+#' Substitution Analysis
+#'
+#' Analyze substitutions - how beneficial were the substitutions?
+#' Take all substitutions and project out until the substituted player was dropped to determine
+#' the points differential between the added player and the dropped player.
+#'
+#' @param f an fpl object
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @import dplyr
+#' @export
+substitution_analysis_all <- function(f, managers = c()) {
+
+  l.subs <- substitutions(f, managers = managers)
+  if (!is.null(l.subs[[1]])) {
+    df.subs <- l.subs[[1]] %>%
+      mutate(r = row_number())
+
+    ## find week in which new player was dropped
+    df.subs <- df.subs %>%
+      rowwise() %>%
+      mutate(week_drop = .week_dropped(player=name_in, team=team_in, week_added=week, max_weeks=f$last_week, data=.))
+
+    ## separate by players in and players out and switch to a long format
+    df.subs_l <- bind_rows(df.subs %>% select('r', 'entry_name', 'start_week' = 'week', 'end_week' = 'week_drop', 'pos', name = 'name_out', team = 'team_out') %>% mutate(direction = 'out'),
+                           df.subs %>% select('r', 'entry_name', 'start_week' = 'week', 'end_week' = 'week_drop', 'pos', name = 'name_in', team = 'team_in') %>% mutate(direction = 'in')) %>%
+      left_join(f$teams %>% select(code, short_name), by = c('team' = 'short_name')) %>%
+      left_join(f$players %>% select(id, web_name, team_code), by = c('name' = 'web_name', 'code' = 'team_code'))
+
+    df.subs_score <- df.subs_l %>%
+      rename('player_id' = 'id') %>%
+      mutate(points = f$stats %>%
+                filter(id == player_id & between(week, start_week, end_week)) %>%
+                summarise(sum(total_points)) %>%
+                pull()
+              )
+
+    ## split table by players in / out and rejoin
+    df.subs_final <- df.subs_score %>%
+      filter(direction == 'in') %>%
+      mutate(num_weeks = end_week - start_week) %>%
+      select(r, entry_name, start_week, end_week, num_weeks, pos, 'name_in' = name, 'team_in' = team, 'points_in' = points) %>%
+      left_join(df.subs_score %>%
+                  filter(direction == 'out') %>%
+                  select(r, 'name_out' = name, 'team_out' = team, 'points_out' = points),
+                by = 'r') %>%
+      mutate(points_gained = points_in - points_out) %>%
+      select(-r)
+    return(df.subs_final)
+  } else {
+    return(NULL)
+  }
+}
+
+
 #' Determine points left on bench
 #'
 #' Calculate number of points left on bench as total and as percentage of weekly score
