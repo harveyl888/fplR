@@ -460,7 +460,7 @@ substitutions <- function(f, weeks = c(), managers = c()) {
 #'
 #' @param f an fpl object
 #' @param start_week Integer.  Week to start the analysis from (default = 2)
-#' @param number_weeks Integer.  Number of weeks to run analysus (default = current week).
+#' @param number_weeks Integer.  Number of weeks to run analysus (default = 1).
 #' @param managers Vector of teams.  Vector of manager names, manager IDs or team
 #'     names.  If empty then include all teams
 #'
