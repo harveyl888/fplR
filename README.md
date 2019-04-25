@@ -19,7 +19,9 @@ Data are pulled back from the Fantasy Premierleague site and stored in a mysql d
 *  `use_chip(f, managers)` List chip usage
 *  `substitutions(f, weeks, managers)` Return tables containing substitution information
 *  `substitution_analysis(f, start_week, number_weeks, managers)` Analyze substitutions - how advantageous were the substitutions?  Take the substitutions applied in week `start_week` and project out `number_weeks` to determine the points differential between the added player and the dropped player.
-
+*  `substitution_analysis_all(f, managers)` Analyze substitutions - how advantageous were the substitutions?  This function assesses points differential from when a player was substituted in to when the same player was dropped (or to the maximum number of weeks if the player was not dropped).
+*  `points_on_bench(f, weeks, managers)` Return tables of points left on the bench
+*  `keeperChoice(f, weeks, managers)` Assessment of keeper choice
 
 ## Original functions
 
