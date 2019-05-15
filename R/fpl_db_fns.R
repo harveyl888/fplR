@@ -294,6 +294,54 @@ bestFormation <- function(f, weeks = c(), managers = c()) {
 }
 
 
+#' Return the maximum possible week score
+#'
+#' Return the maximum possible weekly score taking into account all possible formations and
+#' captain multiplier
+#'
+#' @param f an fpl object
+#' @param weeks Vector of weeks.  If empty then include all weeks
+#' @param captain_multiplier Boolean.  If true then double the captain's score
+#' @param managers Vector of teams.  Vector of manager names, manager IDs or team
+#'     names.  If empty then include all teams
+#'
+#' @return dataframe containing table
+#'
+#' @import dplyr
+#' @importFrom tidyr spread
+#' @export
+maximumScore <- function(f, weeks = c(), captain_multiplier = FALSE, managers = c()) {
+  if (length(weeks) == 0) weeks <- seq(max(f$league_weeks$week))
+  entries <- teamIDs(f, managers)
+
+  multiplier <- as.numeric(captain_multiplier)
+
+  df_max_score <- f$league_weeks %>%
+    filter(entry %in% entries) %>%
+    filter(week %in% weeks) %>%
+    select(entry, week, element, position) %>%
+    group_by(entry, week) %>%
+    left_join(f$players %>% select(id, element_type), by = c('element' = 'id')) %>%
+    left_join(f$stats %>% select(id, week, total_points), by = c('element' = 'id', 'week')) %>%
+    arrange(week, entry, element_type, desc(total_points)) %>%
+    summarise('3-4-3' = sum(total_points[c(1, 3:5, 8:11, 13:15)]) + max(total_points[c(1, 3:5, 8:11, 13:15)]) * multiplier,
+              '3-5-2' = sum(total_points[c(1, 3:5, 8:12, 13:14)]) + max(total_points[c(1, 3:5, 8:12, 13:14)]) * multiplier,
+              '4-3-3' = sum(total_points[c(1, 3:6, 8:10, 13:15)]) + max(total_points[c(1, 3:6, 8:10, 13:15)]) * multiplier,
+              '4-4-2' = sum(total_points[c(1, 3:6, 8:11, 13:14)]) + max(total_points[c(1, 3:6, 8:11, 13:14)]) * multiplier,
+              '4-5-1' = sum(total_points[c(1, 3:6, 8:12, 13)]) + max(total_points[c(1, 3:6, 8:12, 13)]) * multiplier,
+              '5-2-3' = sum(total_points[c(1, 3:7, 8:9, 13:15)]) + max(total_points[c(1, 3:7, 8:9, 13:15)]) * multiplier,
+              '5-3-2' = sum(total_points[c(1, 3:7, 8:10, 13:14)]) + max(total_points[c(1, 3:7, 8:10, 13:14)]) * multiplier,
+              '5-4-1' = sum(total_points[c(1, 3:7, 8:11, 13)]) + max(total_points[c(1, 3:7, 8:11, 13)]) * multiplier
+              )
+  df_max_score$max_score <- apply(df_max_score[, -c(1:2)], 1, max)
+  df_max_score <- df_max_score %>%
+    select(entry, week, max_score) %>%
+    spread(week, max_score, -entry)
+  df_max_score
+}
+
+
+
 #' List chip usage
 #'
 #' Return a data frame of weeks when chips have been used
